@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <title>AI Coach API Test</title>
+</head>
+
+<body>
+  <h2>/api/coach 테스트 페이지</h2>
+  <button onclick="send()">버튼 누르면 AI 서버에 요청 보냅니다</button>
+
+  <h3>응답 결과:</h3>
+  <pre id="result"></pre>
+
+  <script>
+    async function send() {
+      const res = await fetch("https://love-ai-coach.onrender.com/api/coach", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          myMbti: "INFP",
+          partnerMbti: "ESTJ",
+          relationshipStage: "썸",
+          goal: "유지",
+          dialogText: "테스트 메시지입니다!"
+        })
+      });
+
+      const data = await res.json();
+      document.getElementById("result").textContent = 
+        JSON.stringify(data, null, 2);
+    }
+  </script>
+</body>
+</html>
