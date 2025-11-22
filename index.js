@@ -1,15 +1,17 @@
 const express = require("express");
+const cors = require("cors");
+
 const app = express();
 
-// JSON 읽기
+app.use(cors());
 app.use(express.json());
 
-// 메인 페이지 (테스트용)
+// 메인 페이지
 app.get("/", (req, res) => {
   res.send("Love AI Coach 서버가 잘 돌아가는 중입니다!");
 });
 
-// 우리 연애/관계 API 테스트 버전
+// POST API 테스트
 app.post("/api/coach", (req, res) => {
   console.log("요청 body:", req.body);
   res.json({
@@ -19,8 +21,7 @@ app.post("/api/coach", (req, res) => {
   });
 });
 
-// Render에서 PORT 환경변수 사용
 const port = process.env.PORT || 3000;
-app.listen(port, () => {
-  console.log(`서버가 포트 ${port}에서 실행 중입니다.`);
-});
+app.listen(port, () =>
+  console.log(`서버가 포트 ${port}에서 실행 중입니다.`)
+);
