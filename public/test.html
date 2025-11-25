@@ -1,33 +1,32 @@
-
 <!DOCTYPE html>
-<html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>API 테스트</title>
+</head>
 <body>
-  <h2>/api/coach 테스트 페이지</h2>
-  <button onclick="send()">API 요청 보내기</button>
+  <h1>/api/coach 테스트 페이지</h1>
+
+  <button onclick="sendRequest()">서버에 요청!</button>
+
   <pre id="result"></pre>
 
   <script>
-    async function send() {
-      try {
-        const res = await fetch("https://love-ai-coach.onrender.com/api/coach", {
-          method: "POST",
-          mode: "cors",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            myMbti: "INFP",
-            partnerMbti: "ESTJ",
-            relationshipStage: "썸",
-            goal: "유지",
-            dialogText: "테스트 메시지!"
-          })
-        });
+    async function sendRequest() {
+      const response = await fetch("/api/coach", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          myMbti: "INFP",
+          partnerMbti: "ESTJ",
+          dialogText: "테스트 메세지"
+        })
+      });
 
-        const data = await res.json();
-        document.getElementById("result").textContent = JSON.stringify(data, null, 2);
-
-      } catch (err) {
-        document.getElementById("result").textContent = "에러 발생: " + err;
-      }
+      const data = await response.json();
+      document.getElementById("result").innerText = JSON.stringify(data, null, 2);
     }
   </script>
 </body>
