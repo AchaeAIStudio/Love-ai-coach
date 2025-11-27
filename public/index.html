@@ -1,276 +1,539 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-<meta charset="UTF-8">
-<title>AI 관계 코치</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<style>
-  body {
-    font-family: Arial, sans-serif;
-    padding: 20px;
-    max-width: 480px;
-    margin: auto;
-    background:#fafafa;
-  }
-  .screen { display: none; }
-  .active { display: block; }
-  button {
-    width: 100%;
-    padding: 14px;
-    margin-top: 12px;
-    border-radius: 10px;
-    border: none;
-    font-size: 16px;
-    cursor: pointer;
-    background:#3a66ff;
-    color:white;
-  }
-  .option-btn {
-    border-radius: 22px;
-    border:1px solid #ddd;
-    padding: 10px;
-    margin: 6px 0;
-    background: white;
-    cursor:pointer;
-  }
-  .selected { background:#3a66ff; color:white; border-color:#3a66ff; }
-
-  .circle-wrap { display:flex; gap:10px; margin:20px 0; justify-content:center;}
-  .circle { 
-    width:45px; height:45px; border-radius:50%; 
-    border:1px solid #aaa; display:flex; align-items:center; justify-content:center;
-    font-size:13px; cursor:pointer; background:white;
-  }
-  .circle.selected { background:#3a66ff; color:white; }
-
-  textarea { width:100%; height:120px; padding:10px; border-radius:8px; border:1px solid#ccc; }
-
-  .loading { text-align:center; font-size:20px; padding:50px 0; }
-  .result-card {
-    background:white; padding:15px; border-radius:12px; margin-top:12px;
-    border:1px solid #ddd;
-  }
-</style>
+  <meta charset="UTF-8" />
+  <title>AI 관계 코치</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    * {
+      box-sizing: border-box;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+    }
+    body {
+      margin: 0;
+      background: #f5f5f7;
+      color: #111827;
+    }
+    .page {
+      max-width: 480px;
+      margin: 0 auto;
+      min-height: 100vh;
+      padding: 32px 16px 40px;
+      background: #ffffff;
+    }
+    h1 {
+      font-size: 28px;
+      margin-bottom: 8px;
+    }
+    .subtitle {
+      font-size: 14px;
+      color: #6b7280;
+      margin-bottom: 24px;
+      line-height: 1.5;
+    }
+    .input {
+      width: 100%;
+      padding: 12px 16px;
+      border-radius: 10px;
+      border: 1px solid #d1d5db;
+      font-size: 15px;
+    }
+    .btn-primary {
+      width: 100%;
+      padding: 14px;
+      margin-top: 24px;
+      border-radius: 999px;
+      border: none;
+      font-size: 16px;
+      font-weight: 600;
+      background: #2563eb;
+      color: white;
+      cursor: pointer;
+    }
+    .btn-primary:disabled {
+      background: #9ca3af;
+      cursor: not-allowed;
+    }
+    .step-title {
+      font-size: 20px;
+      margin-bottom: 6px;
+      text-align: center;
+    }
+    .step-caption {
+      font-size: 13px;
+      color: #6b7280;
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .question-list {
+      max-height: 420px;
+      overflow-y: auto;
+      padding-right: 4px;
+      margin-bottom: 8px;
+    }
+    .question-item {
+      margin-bottom: 18px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid #e5e7eb;
+    }
+    .question-text {
+      font-size: 14px;
+      margin-bottom: 8px;
+    }
+    .choices {
+      display: flex;
+      justify-content: space-between;
+      gap: 4px;
+    }
+    .choice {
+      flex: 1;
+      text-align: center;
+    }
+    .choice input {
+      display: none;
+    }
+    .choice-label {
+      display: inline-flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      cursor: pointer;
+      font-size: 11px;
+      color: #6b7280;
+    }
+    .choice-circle {
+      width: 28px;
+      height: 28px;
+      border-radius: 999px;
+      border: 1px solid #d1d5db;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      background: #ffffff;
+    }
+    .choice input:checked + .choice-label .choice-circle {
+      background: #2563eb;
+      color: white;
+      border-color: #2563eb;
+    }
+    .choice input:checked + .choice-label span.choice-text {
+      color: #111827;
+      font-weight: 600;
+    }
+    .mbti-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 8px;
+      margin-top: 8px;
+    }
+    .mbti-btn {
+      padding: 10px 0;
+      border-radius: 999px;
+      border: 1px solid #d1d5db;
+      background: #ffffff;
+      font-size: 13px;
+      cursor: pointer;
+    }
+    .mbti-btn.active {
+      background: #2563eb;
+      color: white;
+      border-color: #2563eb;
+      font-weight: 600;
+    }
+    textarea {
+      width: 100%;
+      min-height: 180px;
+      resize: vertical;
+      padding: 12px 16px;
+      border-radius: 10px;
+      border: 1px solid #d1d5db;
+      font-size: 14px;
+    }
+    .result-card {
+      background: #f9fafb;
+      border-radius: 16px;
+      padding: 16px 18px;
+      margin-bottom: 12px;
+      border: 1px solid #e5e7eb;
+      font-size: 14px;
+      line-height: 1.6;
+      white-space: pre-line;
+    }
+    .result-title {
+      font-weight: 700;
+      margin-bottom: 4px;
+      font-size: 14px;
+    }
+    .badge {
+      display: inline-block;
+      font-size: 11px;
+      padding: 4px 8px;
+      border-radius: 999px;
+      background: #eff6ff;
+      color: #2563eb;
+      margin-bottom: 8px;
+    }
+    .center {
+      text-align: center;
+    }
+    .small {
+      font-size: 12px;
+      color: #6b7280;
+      margin-top: 8px;
+    }
+  </style>
 </head>
-
 <body>
+  <div class="page">
 
-<!-- 전체 화면 컨테이너 -->
-<div id="screen-start" class="screen active">
-  <h2>AI 관계 코치</h2>
-  <p>당신의 성향과 대화를 기반으로<br> 상대의 마음과 전략을 분석해드립니다.</p>
+    <!-- STEP 0: 이름 입력 -->
+    <div id="step-name">
+      <h1>AI 관계 코치</h1>
+      <p class="subtitle">
+        당신의 성향과 대화 내용을 기반으로<br />
+        상대의 마음과 대화 전략을 분석해드립니다.
+      </p>
+      <input id="nameInput" class="input" placeholder="이름을 입력해주세요" />
+      <button id="btnToSurvey" class="btn-primary">시작하기</button>
+    </div>
 
-  <input id="userName" placeholder="이름 입력" style="width:100%;padding:12px;border-radius:8px;border:1px solid #ccc;">
-  <button onclick="startApp()">시작하기</button>
-</div>
+    <!-- STEP 1: 성향 설문 (20문항, 한 페이지) -->
+    <div id="step-survey" style="display:none;">
+      <div class="step-title">당신의 성향을 알려주세요</div>
+      <div class="step-caption">
+        각 문장을 읽고, 현재의 나와 가장 가까운 정도를 선택해주세요.
+      </div>
+      <div id="questionList" class="question-list"></div>
+      <button id="btnToMbti" class="btn-primary">다음 단계로</button>
+      <div class="small center">선택하지 않은 문항은 자동으로 ‘보통(3점)’으로 처리됩니다.</div>
+    </div>
 
-<!-- 1. 내 성향 질문 -->
-<div id="screen-myq" class="screen">
-  <h2 id="qTitle">질문 1/5</h2>
-  <p id="qText">나는 걱정이 많은 편이다.</p>
+    <!-- STEP 2: 내 MBTI 선택 -->
+    <div id="step-mbti" style="display:none;">
+      <div class="step-title">당신의 MBTI를 선택해주세요</div>
+      <div class="step-caption">정확하지 않다면 대략적인 타입을 선택해도 괜찮아요.</div>
+      <div id="selfMbtiGrid" class="mbti-grid"></div>
+      <button id="btnToPartner" class="btn-primary">다음 단계로</button>
+    </div>
 
-  <div class="circle-wrap">
-    <div class="circle" onclick="selectAnswer(1)">1</div>
-    <div class="circle" onclick="selectAnswer(2)">2</div>
-    <div class="circle" onclick="selectAnswer(3)">3</div>
-    <div class="circle" onclick="selectAnswer(4)">4</div>
-    <div class="circle" onclick="selectAnswer(5)">5</div>
+    <!-- STEP 3: 상대 MBTI & 카톡 대화 -->
+    <div id="step-partner" style="display:none;">
+      <div class="step-title">상대 정보와 카톡 대화를 알려주세요</div>
+      <div class="step-caption">
+        상대의 성향을 대략 선택하고, 궁금한 카카오톡 대화를 입력해주세요.
+      </div>
+
+      <p style="font-size:13px;margin:8px 0 4px;">상대 MBTI (모르면 비슷한 느낌으로 선택)</p>
+      <div id="partnerMbtiGrid" class="mbti-grid"></div>
+
+      <p style="font-size:13px;margin:16px 0 4px;">카톡 대화 내용</p>
+      <textarea id="chatInput" placeholder="예시)\n나: 요즘 바쁜 거 같네 ㅎㅎ\n상대: 응 조금..? 연락 자주 못해서 미안해\n나: 괜찮아~ 다음에 언제 볼까?"></textarea>
+
+      <button id="btnAnalyze" class="btn-primary">AI 분석 시작</button>
+      <div class="small">
+        입력한 내용은 분석에만 사용되며, 서버에 별도로 저장되지 않습니다.
+      </div>
+    </div>
+
+    <!-- STEP 4: 결과 -->
+    <div id="step-result" style="display:none;">
+      <div class="step-title">AI 진단 결과</div>
+      <div class="step-caption">상대의 의도와, 당신에게 필요한 대화 전략을 정리했어요.</div>
+
+      <div class="result-card" id="card-intent">
+        <div class="badge">상대방의 의도</div>
+        <div id="intentText"></div>
+      </div>
+
+      <div class="result-card" id="card-strategy">
+        <div class="result-title">당신에게 필요한 대화 전략</div>
+        <div id="strategyText"></div>
+      </div>
+
+      <div class="result-card" id="card-ment">
+        <div class="result-title">추천 멘트 예시</div>
+        <div id="mentText"></div>
+      </div>
+
+      <button id="btnRestart" class="btn-primary">다시 분석하기</button>
+      <div class="small center">홈으로 돌아가 새롭게 이름을 입력하면 처음부터 다시 시작합니다.</div>
+    </div>
+
   </div>
 
-  <button onclick="nextQuestion()">다음</button>
-</div>
+  <script>
+    // ---------- 데이터 셋업 ----------
+    const QUESTIONS = [
+      "나는 낯선 사람에게 쉽게 마음을 여는 편이다.",
+      "나는 상대의 감정 변화에 민감하게 반응하는 편이다.",
+      "나는 갈등이 생겨도 먼저 해결하려고 나서는 편이다.",
+      "나는 혼자만의 시간이 꼭 필요하다.",
+      "나는 감정 표현을 솔직하게 하는 편이다.",
+      "나는 상대가 답장을 늦게 하면 불안해지는 편이다.",
+      "나는 새로운 사람과의 만남을 즐긴다.",
+      "나는 누군가에게 호감이 생기면 적극적으로 표현하는 편이다.",
+      "나는 장기적인 관계를 선호한다.",
+      "나는 상대의 말투나 뉘앙스에 영향을 많이 받는다.",
+      "나는 사소한 일에도 걱정을 하는 편이다.",
+      "나는 감정보다는 논리를 우선시하는 편이다.",
+      "나는 분위기 맞추려고 내 의견을 숨길 때가 많다.",
+      "나는 관계를 유지하려고 노력하는 시간이 많다.",
+      "나는 새로운 사랑을 시작하는 것을 쉽게 결정하는 편이다.",
+      "나는 서운함이 쌓여도 바로 표현하지 못한다.",
+      "나는 연애할 때 상대 중심으로 맞추는 편이다.",
+      "나는 상대가 먼저 다가와주는 걸 선호한다.",
+      "나는 상대에게 기대고 싶어하는 편이다.",
+      "나는 관계에서 확신을 빨리 얻고 싶어 한다."
+    ];
 
-<!-- 2. MBTI 선택 -->
-<div id="screen-mbti" class="screen">
-  <h2>당신의 MBTI를 선택해주세요</h2>
+    const MBTIS = [
+      "INTJ","INTP","INFJ","INFP",
+      "ENTJ","ENTP","ENFJ","ENFP",
+      "ISTJ","ISTP","ISFJ","ISFP",
+      "ESTJ","ESTP","ESFJ","ESFP"
+    ];
 
-  <div id="mbtiList" style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:20px;"></div>
+    // ---------- DOM 요소 ----------
+    const stepName    = document.getElementById("step-name");
+    const stepSurvey  = document.getElementById("step-survey");
+    const stepMbti    = document.getElementById("step-mbti");
+    const stepPartner = document.getElementById("step-partner");
+    const stepResult  = document.getElementById("step-result");
 
-  <button onclick="goPartnerScreen()">다음</button>
-</div>
+    const nameInput   = document.getElementById("nameInput");
+    const btnToSurvey = document.getElementById("btnToSurvey");
+    const questionList= document.getElementById("questionList");
+    const btnToMbti   = document.getElementById("btnToMbti");
 
-<!-- 3. 상대 성향 선택 -->
-<div id="screen-partner" class="screen">
-  <h2>상대방의 특징을 선택해주세요</h2>
-  <p>최대 2개 선택</p>
+    const selfMbtiGrid    = document.getElementById("selfMbtiGrid");
+    const partnerMbtiGrid = document.getElementById("partnerMbtiGrid");
+    const btnToPartner    = document.getElementById("btnToPartner");
 
-  <div id="partnerList"></div>
+    const chatInput   = document.getElementById("chatInput");
+    const btnAnalyze  = document.getElementById("btnAnalyze");
 
-  <button onclick="goChatScreen()">다음</button>
-</div>
+    const intentText   = document.getElementById("intentText");
+    const strategyText = document.getElementById("strategyText");
+    const mentText     = document.getElementById("mentText");
+    const btnRestart   = document.getElementById("btnRestart");
 
-<!-- 4. 카톡 텍스트 분석 -->
-<div id="screen-chat" class="screen">
-  <h2>카톡 대화 분석</h2>
-  <textarea id="chatText" placeholder="최근 카톡 대화를 붙여넣어주세요"></textarea>
-  <button onclick="submitToAI()">AI 분석 시작</button>
-</div>
+    let selectedSelfMbti = null;
+    let selectedPartnerMbti = null;
 
-<!-- 5. 로딩 -->
-<div id="screen-loading" class="screen">
-  <div class="loading">
-    <p>AI 분석 중...</p>
-    <p>잠시만 기다려주세요.</p>
-  </div>
-</div>
+    // ---------- 유틸: 페이지 전환 ----------
+    function showStep(step) {
+      stepName.style.display    = step === "name"    ? "block" : "none";
+      stepSurvey.style.display  = step === "survey"  ? "block" : "none";
+      stepMbti.style.display    = step === "mbti"    ? "block" : "none";
+      stepPartner.style.display = step === "partner" ? "block" : "none";
+      stepResult.style.display  = step === "result"  ? "block" : "none";
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
 
-<!-- 6. 결과 화면 -->
-<div id="screen-result" class="screen">
-  <h2>AI 진단 결과</h2>
+    // ---------- 성향 질문 UI 생성 ----------
+    function buildQuestions() {
+      questionList.innerHTML = "";
 
-  <div class="result-card" id="result-intent">상대 의도 분석</div>
-  <div class="result-card" id="result-strategy">대화 전략</div>
-  <div class="result-card" id="result-message">추천 멘트</div>
+      QUESTIONS.forEach((q, index) => {
+        const wrapper = document.createElement("div");
+        wrapper.className = "question-item";
 
-  <button onclick="restart()">다시 분석하기</button>
-</div>
+        const text = document.createElement("div");
+        text.className = "question-text";
+        text.textContent = `${index + 1}. ${q}`;
+        wrapper.appendChild(text);
 
-<script>
-/* ====== 글로벌 상태값 ====== */
-let state = {
-  userName: "",
-  myAnswers: [],
-  myMBTI: "",
-  partnerFeel: [],
-  chatText: "",
-  situation: "썸",
-  goal: "상대의 의도를 정확히 알고 싶다."
-};
+        const choices = document.createElement("div");
+        choices.className = "choices";
 
-/* ====== 화면 전환 ====== */
-function show(screenId){
-  document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
-  document.getElementById(screenId).classList.add("active");
-}
+        const labels = ["매우 아니다","아니다","보통","그렇다","매우 그렇다"];
 
-function startApp(){
-  state.userName = document.getElementById("userName").value || "사용자";
-  show("screen-myq");
-}
+        labels.forEach((label, i) => {
+          const value = i + 1; // 1~5
+          const choice = document.createElement("div");
+          choice.className = "choice";
 
-/* ====== 내 성향 질문 로직 ====== */
-const questions = [
-  "나는 걱정이 많은 편이다.",
-  "나는 감정을 솔직하게 표현하는 편이다.",
-  "나는 사람들과 있을 때 에너지를 얻는다.",
-  "나는 계획적으로 행동하는 편이다.",
-  "나는 갈등 상황을 피하려고 한다."
-];
-let qIndex = 0;
-let lastAnswer = 0;
+          const input = document.createElement("input");
+          input.type = "radio";
+          input.name = `q-${index}`;
+          input.id = `q-${index}-${value}`;
+          input.value = value;
 
-function selectAnswer(score){
-  lastAnswer = score;
-  document.querySelectorAll(".circle").forEach(c=>c.classList.remove("selected"));
-  event.target.classList.add("selected");
-}
+          // 기본값: 보통(3)
+          if (value === 3) {
+            input.checked = true;
+          }
 
-function nextQuestion(){
-  if(lastAnswer === 0) return alert("점수를 선택해주세요!");
-  state.myAnswers.push(lastAnswer);
-  lastAnswer = 0;
+          const labelEl = document.createElement("label");
+          labelEl.className = "choice-label";
+          labelEl.setAttribute("for", input.id);
 
-  qIndex++;
-  if(qIndex < questions.length){
-    document.getElementById("qTitle").innerText = `질문 ${qIndex+1}/5`;
-    document.getElementById("qText").innerText = questions[qIndex];
-    document.querySelectorAll(".circle").forEach(c=>c.classList.remove("selected"));
-  } else {
-    loadMBTI();
-    show("screen-mbti");
-  }
-}
+          const circle = document.createElement("div");
+          circle.className = "choice-circle";
+          circle.textContent = value;
 
-/* ====== MBTI 선택 ====== */
-function loadMBTI(){
-  const mbtis = ["INTJ","INTP","INFJ","INFP","ENTJ","ENTP","ENFJ","ENFP",
-                 "ISTJ","ISTP","ISFJ","ISFP","ESTJ","ESTP","ESFJ","ESFP"];
-  const list = document.getElementById("mbtiList");
-  list.innerHTML = "";
+          const textSpan = document.createElement("span");
+          textSpan.className = "choice-text";
+          textSpan.textContent = label;
 
-  mbtis.forEach(m=>{
-    const btn = document.createElement("div");
-    btn.className = "option-btn";
-    btn.innerText = m;
-    btn.onclick = ()=> {
-      document.querySelectorAll("#mbtiList .option-btn").forEach(b=>b.classList.remove("selected"));
-      btn.classList.add("selected");
-      state.myMBTI = m;
-    };
-    list.appendChild(btn);
-  });
-}
+          labelEl.appendChild(circle);
+          labelEl.appendChild(textSpan);
 
-function goPartnerScreen(){
-  if(!state.myMBTI) return alert("MBTI를 선택해주세요!");
-  loadPartnerFeel();
-  show("screen-partner");
-}
+          choice.appendChild(input);
+          choice.appendChild(labelEl);
+          choices.appendChild(choice);
+        });
 
-/* ====== 상대 특징 선택 ====== */
-function loadPartnerFeel(){
-  const feels = ["감정적","논리적","직관적","즉흥적","계획적","말수가 적다","답장 느리다","차갑다","따뜻하다"];
-  const list = document.getElementById("partnerList");
-  list.innerHTML = "";
+        wrapper.appendChild(choices);
+        questionList.appendChild(wrapper);
+      });
+    }
 
-  feels.forEach(f=>{
-    const btn = document.createElement("div");
-    btn.className = "option-btn";
-    btn.innerText = f;
-    btn.onclick = ()=>{
-      if(btn.classList.contains("selected")){
-        btn.classList.remove("selected");
-        state.partnerFeel = state.partnerFeel.filter(x=>x!==f);
-      } else {
-        if(state.partnerFeel.length >= 2) return alert("최대 2개까지 선택 가능합니다!");
-        btn.classList.add("selected");
-        state.partnerFeel.push(f);
+    // ---------- MBTI 버튼 생성 ----------
+    function buildMbtiGrid(container, isSelf) {
+      container.innerHTML = "";
+      MBTIS.forEach(type => {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.textContent = type;
+        btn.className = "mbti-btn";
+
+        btn.addEventListener("click", () => {
+          // reset
+          Array.from(container.querySelectorAll(".mbti-btn")).forEach(b => {
+            b.classList.remove("active");
+          });
+          btn.classList.add("active");
+
+          if (isSelf) selectedSelfMbti = type;
+          else selectedPartnerMbti = type;
+        });
+
+        container.appendChild(btn);
+      });
+    }
+
+    // ---------- 설문 값 수집 ----------
+    function collectAnswers() {
+      const answers = [];
+      QUESTIONS.forEach((_, idx) => {
+        const checked = document.querySelector(`input[name="q-${idx}"]:checked`);
+        const value = checked ? parseInt(checked.value, 10) : 3; // default 3
+        answers.push(value);
+      });
+      return answers;
+    }
+
+    // ---------- 이벤트 바인딩 ----------
+    btnToSurvey.addEventListener("click", () => {
+      const name = nameInput.value.trim();
+      if (!name) {
+        alert("이름을 입력해주세요!");
+        return;
       }
-    };
-    list.appendChild(btn);
-  });
-}
+      showStep("survey");
+    });
 
-function goChatScreen(){
-  if(state.partnerFeel.length === 0) return alert("특징을 최소 1개 선택해주세요!");
-  show("screen-chat");
-}
+    btnToMbti.addEventListener("click", () => {
+      // 굳이 검증 안 해도 됨 (기본값 3점)
+      showStep("mbti");
+    });
 
-/* ====== AI 분석 요청 ====== */
-async function submitToAI(){
-  state.chatText = document.getElementById("chatText").value.trim();
-  if(!state.chatText) return alert("카톡 대화를 입력해주세요!");
+    btnToPartner.addEventListener("click", () => {
+      if (!selectedSelfMbti) {
+        alert("내 MBTI를 하나 선택해주세요.");
+        return;
+      }
+      showStep("partner");
+    });
 
-  show("screen-loading");
+    btnAnalyze.addEventListener("click", async () => {
+      const name = nameInput.value.trim();
+      if (!name) {
+        alert("이름이 없습니다. 처음으로 돌아가 다시 시도해주세요.");
+        showStep("name");
+        return;
+      }
 
-  const res = await fetch("/api/coach", {
-    method: "POST",
-    headers: {"Content-Type":"application/json"},
-    body: JSON.stringify(state)
-  });
+      if (!selectedPartnerMbti) {
+        const confirmDefault = confirm("상대 MBTI를 선택하지 않았어요. '알 수 없음'으로 진행할까요?");
+        if (!confirmDefault) return;
+      }
 
-  const data = await res.json();
+      const chat = chatInput.value.trim();
+      if (!chat) {
+        const goAhead = confirm("카톡 대화가 비어있습니다. 그래도 분석을 진행할까요?");
+        if (!goAhead) return;
+      }
 
-  show("screen-result");
+      const answers = collectAnswers();
 
-  if(data.ok){
-    const msg = data.aiMessage.split("\n");
-    document.getElementById("result-intent").innerText = msg[0] || "의도 분석 없음";
-    document.getElementById("result-strategy").innerText = msg[1] || "전략 없음";
-    document.getElementById("result-message").innerText = msg.slice(2).join("\n") || "추천 멘트 없음";
-  } else {
-    document.getElementById("result-intent").innerText = "오류 발생";
-    document.getElementById("result-strategy").innerText = data.error;
-    document.getElementById("result-message").innerText = "";
-  }
-}
+      btnAnalyze.disabled = true;
+      btnAnalyze.textContent = "분석 중...";
 
-function restart(){
-  location.reload();
-}
+      try {
+        const res = await fetch("/api/coach", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            name,
+            selfAnswers: answers,
+            selfMbti: selectedSelfMbti,
+            partnerMbti: selectedPartnerMbti || "UNKNOWN",
+            chatText: chat
+          })
+        });
 
-</script>
+        const data = await res.json();
 
+        if (!data.ok) {
+          alert("AI 분석 중 오류가 발생했습니다: " + (data.error || "알 수 없는 오류"));
+          btnAnalyze.disabled = false;
+          btnAnalyze.textContent = "AI 분석 시작";
+          return;
+        }
+
+        // 백엔드에서 내려주는 필드 이름에 맞게 조정
+        const intent      = data.aiMessage || data.intent || "상대방의 의도를 파악하는 내용이 여기에 표시됩니다.";
+        const strategy    = data.strategy || "당신에게 필요한 대화 전략을 여기에 제안합니다.";
+        const recommendation = data.recommendedMent || data.ment || "예시 멘트가 여기에 표시됩니다.";
+
+        intentText.textContent   = intent;
+        strategyText.textContent = strategy;
+        mentText.textContent     = recommendation;
+
+        showStep("result");
+      } catch (err) {
+        console.error(err);
+        alert("네트워크 오류가 발생했습니다. 잠시 후 다시 시도해주세요.");
+      } finally {
+        btnAnalyze.disabled = false;
+        btnAnalyze.textContent = "AI 분석 시작";
+      }
+    });
+
+    btnRestart.addEventListener("click", () => {
+      // 상태 초기화
+      nameInput.value = "";
+      chatInput.value = "";
+      selectedSelfMbti = null;
+      selectedPartnerMbti = null;
+
+      Array.from(selfMbtiGrid.querySelectorAll(".mbti-btn")).forEach(b => b.classList.remove("active"));
+      Array.from(partnerMbtiGrid.querySelectorAll(".mbti-btn")).forEach(b => b.classList.remove("active"));
+
+      // 설문 기본값(3점) 다시 세팅
+      buildQuestions();
+
+      showStep("name");
+    });
+
+    // ---------- 초기 로드 ----------
+    buildQuestions();
+    buildMbtiGrid(selfMbtiGrid, true);
+    buildMbtiGrid(partnerMbtiGrid, false);
+    showStep("name");
+  </script>
 </body>
 </html>
