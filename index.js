@@ -1,61 +1,80 @@
-// index.js
 import express from "express";
-import cors from "cors";
+import path from "path";
+import { fileURLToPath } from "url";
 import OpenAI from "openai";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
 app.use(express.json());
-app.use(cors());
+app.use(express.urlencoded({ extended: true }));
+app.use(express.static(path.join(__dirname, "public")));
 
-// 1) 정적 파일 (public 폴더)
-app.use(express.static("public"));
-
-// 2) OpenAI 클라이언트 준비
 const client = new OpenAI({
-  apiKey: process.env.AICoachTalk
+  apiKey: process.env.OPENAI_API_KEY,
 });
 
-// 3) 테스트용 GET 홈
-app.get("/", (req, res) => {
-  res.send("Love AI Coach 서버 준비 완료!");
-});
-
-// 4) GPT 호출 API
+// ---------------------------
+// 🚀 AI 분석 API
+// ---------------------------
 app.post("/api/coach", async (req, res) => {
   try {
-    const { myMbti, partnerMbti, relationshipStage, goal, dialogText } = req.body;
+    console.log("🔥 요청 수신됨:", req.body);
 
-    console.log("👉 서버 받은 데이터:", req.body);
+    const {
+      userName,
+      userMbti,
+      userTraits,
+      targetMbti,
+      chatText,
+      whatYouWantToSay,
+    } = req.body;
 
-    // OpenAI GPT 호출
-    const completion = await client.responses.create({
-      model: "gpt-4.1-mini",
-      input: `
-당신은 연애 코치 AI입니다.
-유저 MBTI: ${myMbti}
-상대 MBTI: ${partnerMbti}
-관계 단계: ${relationshipStage}
-목표: ${goal}
-상황: ${dialogText}
+    if (!chatText || !userMbti) {
+      return res.status(400).json({ ok: false, error: "필수 데이터 누락" });
+    }
 
-위 정보를 바탕으로 친절하고 구체적인 연애 조언을 5문장 이내로 해주세요.
-`
+    const prompt = `
+당신은 대화 분석·관계 코칭 전문가입니다. 아래 데이터를 기반으로 분석하세요.
+
+[사용자 정보]
+이름: ${userName}
+MBTI: ${userMbti}
+성향 점수: ${JSON.stringify(userTraits)}
+
+[상대방 정보]
+사용자가 추정한 상대 MBTI: ${targetMbti}
+
+[카톡 대화 내용]
+${chatText}
+
+[사용자가 하고 싶은 말]
+${whatYouWantToSay}
+
+---
+
+1) 상대의 감정·의도 분석  
+2) 사용자와 상대 MBTI 조합 해석  
+3) 앞으로 대화 전략 3가지  
+4) 추천 멘트 5개 (복사 편하게 줄바꿈 포함)  
+5) 조심해야 하는 점 3가지  
+
+한국어로, 카드 UI에 넣는다는 느낌으로 깔끔하게 작성.
+    `;
+
+    const completion = await client.chat.completions.create({
+      model: "gpt-4o-mini",
+      messages: [{ role: "user", content: prompt }],
     });
 
-    const aiMessage = completion.output[0].content[0].text;
-
-    res.json({
-      ok: true,
-      message: "GPT 응답 성공",
-      aiMessage
-    });
-
-  } catch (error) {
-    console.error("❌ GPT 오류:", error);
-    res.status(500).json({ ok: false, error: error.message });
+    const result = completion.choices[0].message.content;
+    return res.json({ ok: true, result });
+  } catch (err) {
+    console.error("❌ 서버 오류:", err);
+    res.status(500).json({ ok: false, error: err.message });
   }
 });
 
-// 5) 서버 실행
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`🚀 서버 실행 중: ${PORT}`));
+// 서버 실행
+app.listen(10000, () => console.log("🚀 서버 실행 중 (10000번 포트)"));
