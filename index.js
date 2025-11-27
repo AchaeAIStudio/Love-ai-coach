@@ -9,6 +9,9 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+// ⭐ 매우 중요: public 폴더를 정적 웹으로 서비스
+app.use(express.static("public"));
+
 // OpenAI 클라이언트
 const client = new OpenAI({
     apiKey: process.env.OPENAI_API_KEY,
@@ -39,14 +42,13 @@ app.post("/analyze", async (req, res) => {
 3) 추천 멘트 3개
         `;
 
-        // 최신 OpenAI SDK 방식
+        // 최신 OpenAI Responses API
         const response = await client.responses.create({
             model: "gpt-4o-mini",
             input: prompt
         });
 
         const output = response.output_text;
-
         res.json({ result: output });
 
     } catch (error) {
