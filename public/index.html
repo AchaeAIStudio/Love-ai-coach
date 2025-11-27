@@ -4,6 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>AI 관계 코치</title>
+
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -91,7 +92,8 @@
             padding: 20px;
             border-radius: 14px;
             background: #fff;
-            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+            white-space: pre-wrap;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.08);
         }
     </style>
 </head>
@@ -113,25 +115,25 @@
         </div>
     </div>
 
-    <!-- 2. 당신의 성향 -->
+    <!-- 2. 성향 -->
     <div class="card">
         <h3>당신의 성향</h3>
-        <p>1. 나는 낯선 사람에게 쉽게 마음을 여는 편이다.</p>
-        <input type="number" id="tendency1" min="1" max="5" value="3" />
+        <p>1. 나는 낯선 사람에게 쉽게 마음을 연다.</p>
+        <input type="number" id="tendency1" min="1" max="5" value="3">
 
-        <p>2. 나는 상대의 감정 변화에 민감하다.</p>
-        <input type="number" id="tendency2" min="1" max="5" value="3" />
+        <p>2. 상대의 감정 변화에 민감하다.</p>
+        <input type="number" id="tendency2" min="1" max="5" value="3">
 
-        <p>3. 갈등이 생기면 먼저 해결하려는 편이다.</p>
-        <input type="number" id="tendency3" min="1" max="5" value="3" />
+        <p>3. 갈등이 생기면 먼저 해결한다.</p>
+        <input type="number" id="tendency3" min="1" max="5" value="3">
 
-        <p>4. 나는 혼자만의 시간이 꼭 필요하다.</p>
-        <input type="number" id="tendency4" min="1" max="5" value="3" />
+        <p>4. 혼자만의 시간이 꼭 필요하다.</p>
+        <input type="number" id="tendency4" min="1" max="5" value="3">
     </div>
 
     <!-- 3. 상대 MBTI -->
     <div class="card">
-        <h3>상대의 MBTI</h3>
+        <h3>상대 MBTI</h3>
         <div class="mbti-grid" id="otherMbtiGrid">
             <div class="mbti-btn">INTJ</div><div class="mbti-btn">INTP</div><div class="mbti-btn">INFJ</div><div class="mbti-btn">INFP</div>
             <div class="mbti-btn">ENTJ</div><div class="mbti-btn">ENTP</div><div class="mbti-btn">ENFJ</div><div class="mbti-btn">ENFP</div>
@@ -140,7 +142,7 @@
         </div>
     </div>
 
-    <!-- 4. 카톡 대화 내용 -->
+    <!-- 4. 카톡 -->
     <div class="card">
         <h3>카톡 대화</h3>
         <textarea id="chatText"></textarea>
@@ -153,20 +155,20 @@
     </div>
 
     <button class="submit-btn" onclick="startAnalysis()">AI 분석 시작</button>
-    <p class="error" id="errorMessage"></p>
+    <p id="errorMessage" class="error"></p>
 
-    <!-- 6. 결과 출력 -->
     <div id="resultArea"></div>
 
 </div>
 
 <script>
-    // MBTI 버튼 선택
+    // MBTI 선택
     function setupMbtiSelection(gridId, variableName) {
         const grid = document.getElementById(gridId);
         grid.querySelectorAll(".mbti-btn").forEach(btn => {
             btn.addEventListener("click", () => {
-                grid.querySelectorAll(".mbti-btn").forEach(b => b.classList.remove("selected"));
+                grid.querySelectorAll(".mbti-btn")
+                    .forEach(b => b.classList.remove("selected"));
                 btn.classList.add("selected");
                 window[variableName] = btn.innerText;
             });
@@ -176,7 +178,7 @@
     setupMbtiSelection("myMbtiGrid", "myMbti");
     setupMbtiSelection("otherMbtiGrid", "otherMbti");
 
-    // AI 분석 수행
+    // 분석 요청
     async function startAnalysis() {
         const chat = document.getElementById("chatText").value.trim();
         const myMsg = document.getElementById("myMessage").value.trim();
@@ -193,12 +195,12 @@
         document.getElementById("errorMessage").innerText = "";
 
         const payload = {
-    userMBTI: myMbti,
-    partnerMBTI: otherMbti,
-    chatText: chat,
-    myMessage: myMsg,
-    traits: [t1, t2, t3, t4]
-};
+            userMBTI: myMbti,
+            partnerMBTI: otherMbti,
+            chatText: chat,
+            myMessage: myMsg,
+            traits: [t1, t2, t3, t4]
+        };
 
         try {
             const res = await fetch("https://love-ai-coach.onrender.com/analyze", {
@@ -209,20 +211,14 @@
 
             const data = await res.json();
 
+            if (data.error) {
+                document.getElementById("errorMessage").innerText = "AI 분석 오류!";
+                return;
+            }
+
             document.getElementById("resultArea").innerHTML = `
-    <div class='result-card'>
-        <pre>${data.result}</pre>
-    </div>`; 
-            
-                    <h3>상대의 의도</h3>
-                    <p>${data.intent}</p>
-
-                    <h3>당신에게 필요한 전략</h3>
-                    <p>${data.strategy}</p>
-
-                    <h3>추천 멘트</h3>
-                    <p>${data.suggested_messages.join("<br>")}</p>
-                </div>`;
+                <div class="result-card">${data.result}</div>
+            `;
         } catch (err) {
             document.getElementById("errorMessage").innerText = "AI 분석 오류!";
             console.log(err);
