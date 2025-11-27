@@ -193,12 +193,12 @@
         document.getElementById("errorMessage").innerText = "";
 
         const payload = {
-            my_mbti: myMbti,
-            other_mbti: otherMbti,
-            chat_text: chat,
-            my_message: myMsg,
-            tendencies: [t1, t2, t3, t4]
-        };
+    userMBTI: myMbti,
+    partnerMBTI: otherMbti,
+    chatText: chat,
+    myMessage: myMsg,
+    traits: [t1, t2, t3, t4]
+};
 
         try {
             const res = await fetch("https://love-ai-coach.onrender.com/analyze", {
@@ -210,7 +210,10 @@
             const data = await res.json();
 
             document.getElementById("resultArea").innerHTML = `
-                <div class='result-card'>
+    <div class='result-card'>
+        <pre>${data.result}</pre>
+    </div>`; 
+            
                     <h3>상대의 의도</h3>
                     <p>${data.intent}</p>
 
