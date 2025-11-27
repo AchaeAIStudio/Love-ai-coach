@@ -2,342 +2,237 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>AI 관계 코치</title>
   <style>
     body {
-      font-family: sans-serif;
-      background: #f8f9fc;
+      font-family: Arial, sans-serif;
       margin: 0;
       padding: 0;
+      background-color: #f7f9fc;
+      color: #333;
     }
     .container {
-      max-width: 480px;
-      margin: 0 auto;
-      padding: 24px;
-    }
-    h1, h2, h3 {
-      text-align: center;
-      margin-bottom: 12px;
-    }
-    button {
       width: 100%;
-      padding: 14px;
-      border: none;
-      background: #3d63ff;
-      color: white;
-      font-size: 17px;
-      border-radius: 10px;
-      cursor: pointer;
-      margin-top: 20px;
+      max-width: 480px;
+      margin: auto;
+      padding: 20px;
     }
-    button:hover {
-      opacity: 0.95;
+    h1, h2 {
+      text-align: center;
+      font-weight: 700;
     }
-    .hidden { display: none; }
-    .question-block {
-      padding: 16px;
+    .card {
       background: white;
-      border-radius: 10px;
-      margin-bottom: 20px;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+      padding: 18px;
+      margin-top: 20px;
+      border-radius: 14px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
     }
-    .score-buttons button {
-      width: 18%;
-      margin: 4px;
-      padding: 10px;
-      border-radius: 50px;
-      background: #e5e7eb;
-    }
-    .score-buttons button.selected {
-      background: #3d63ff;
+    .btn {
+      width: 100%;
+      margin-top: 20px;
+      padding: 15px;
+      border: none;
+      background: #2F6BFF;
       color: white;
+      border-radius: 12px;
+      font-size: 17px;
+      cursor: pointer;
+    }
+    .btn:hover {
+      background: #1f4ed6;
     }
     textarea {
       width: 100%;
-      height: 180px;
+      height: 140px;
       padding: 10px;
-      border-radius: 8px;
+      border-radius: 10px;
       border: 1px solid #ccc;
       margin-top: 10px;
-      font-size: 14px;
-    }
-    .result-box {
-      padding: 20px;
-      background: white;
-      border-radius: 10px;
-      margin: 16px 0;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+      font-size: 15px;
+      resize: none;
     }
     .mbti-grid {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
       gap: 10px;
+      margin-top: 15px;
     }
     .mbti-btn {
-      padding: 10px 0;
-      background: #fff;
-      border-radius: 10px;
-      border: 1px solid #ccc;
-      cursor: pointer;
+      padding: 12px;
       text-align: center;
+      background: #f1f1f1;
+      border-radius: 10px;
+      cursor: pointer;
+      border: 1px solid #ddd;
     }
-    .mbti-btn.selected {
-      background: #3d63ff;
+    .mbti-btn.active {
+      background: #2F6BFF;
       color: white;
-      border-color: #3d63ff;
+      border-color: #2F6BFF;
+    }
+    .result-card {
+      background: white;
+      padding: 20px;
+      border-radius: 14px;
+      margin-top: 20px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
     }
   </style>
 </head>
 
 <body>
-<div class="container">
+  <div class="container">
 
-  <!-- STEP 1: 시작 화면 -->
-  <div id="step1">
     <h1>AI 관계 코치</h1>
-    <p style="text-align:center;">당신의 성향과 대화를 통해 전략을 분석합니다.</p>
-    <input id="userName" placeholder="이름을 입력해주세요" style="width:100%;padding:14px;border-radius:10px;border:1px solid #ccc;">
-    <button onclick="goStep2()">시작하기</button>
-  </div>
+    <p style="text-align:center;">당신의 성향과 대화 내용을 기반으로<br>상대의 마음과 전략을 분석합니다.</p>
 
-  <!-- STEP 2: 성향 테스트 -->
-  <div id="step2" class="hidden">
-    <h2>당신의 성향을 알려주세요</h2>
-
-    <div id="traitContainer"></div>
-
-    <button onclick="goStep3()">다음 단계로</button>
-  </div>
-
-  <!-- STEP 3: MBTI 선택 -->
-  <div id="step3" class="hidden">
-    <h2>당신의 MBTI를 선택하세요</h2>
-
-    <div class="mbti-grid" id="userMbtiGrid"></div>
-    <button onclick="goStep4()">다음</button>
-  </div>
-
-  <!-- STEP 4: 상대 정보 입력 -->
-  <div id="step4" class="hidden">
-    <h2>상대 정보와 대화를 입력해주세요</h2>
-
-    <p>상대 MBTI (모르면 느낌으로 선택)</p>
-    <div class="mbti-grid" id="partnerMbtiGrid"></div>
-
-    <p style="margin-top:20px;">카톡 대화 내용</p>
-    <textarea id="chatText" placeholder="예시) 나: 요즘 바쁜 거 같네ㅠㅠ ..."></textarea>
-
-    <p style="margin-top:20px;">내가 하고 싶은 말</p>
-    <textarea id="intentionText" placeholder="예시) 진심을 표현하고 싶어요"></textarea>
-
-    <button onclick="sendToAI()">AI 분석 시작</button>
-  </div>
-
-  <!-- STEP 5: 결과 화면 -->
-  <div id="step5" class="hidden">
-    <h2>AI 진단 결과</h2>
-
-    <div class="result-box">
-      <h3>상대 의도</h3>
-      <div id="r_intent"></div>
+    <!-- 1단계: 본인 MBTI -->
+    <div class="card">
+      <h2>당신의 MBTI</h2>
+      <div class="mbti-grid" id="myMBTI"></div>
     </div>
 
-    <div class="result-box">
-      <h3>대화 흐름 분석</h3>
-      <div id="r_flow"></div>
-      <h4>⚠️ 위험 포인트</h4>
-      <ul id="r_risk"></ul>
+    <!-- 2단계: 본인 성향 질문 (4개 예시. 나중에 늘릴 수 있게 구조 완성) -->
+    <div class="card">
+      <h2>당신의 성향</h2>
+      <div id="traits"></div>
     </div>
 
-    <div class="result-box">
-      <h3>전략 요약</h3>
-      <div id="r_summary"></div>
+    <!-- 3단계: 상대 MBTI 선택 -->
+    <div class="card">
+      <h2>상대의 MBTI</h2>
+      <div class="mbti-grid" id="targetMBTI"></div>
     </div>
 
-    <div class="result-box">
-      <h3>추천 멘트</h3>
-      <ul id="r_phrases"></ul>
+    <!-- 4단계: 카톡 대화 -->
+    <div class="card">
+      <h2>카톡 대화</h2>
+      <textarea id="chatText" placeholder="상대와 대화 내용을 입력하세요"></textarea>
     </div>
 
-    <button onclick="location.reload()">다시 분석하기</button>
+    <!-- 5단계: 내가 하고 싶은 말 -->
+    <div class="card">
+      <h2>내가 하고 싶은 말</h2>
+      <textarea id="myIntent" placeholder="나의 속마음 혹은 하고 싶은 말을 입력하세요"></textarea>
+    </div>
+
+    <button class="btn" onclick="analyze()">AI 분석 시작</button>
+
+    <!-- 결과 영역 -->
+    <div id="resultArea"></div>
+
   </div>
-</div>
 
-<script>
-/* -------------------------------
-   질문 리스트 생성
--------------------------------- */
-const traitQuestions = [
-  "나는 낯선 사람에게 쉽게 마음을 여는 편이다.",
-  "나는 상대의 감정 변화에 민감하다.",
-  "나는 갈등을 먼저 해결하려고 한다.",
-  "나는 혼자만의 시간이 꼭 필요하다.",
-  "나는 사소한 일에도 쉽게 상처받는다.",
-  "나는 상대가 먼저 리드하면 편하다.",
-  "나는 말보다 행동으로 표현하는 편이다.",
-  "나는 감정 기복이 적은 편이다.",
-  "나는 연락 스타일이 꾸준하다.",
-  "나는 상대 의견을 우선 고려한다."
-];
+  <script>
+    const MBTIS = [
+      "INTJ","INTP","INFJ","INFP",
+      "ENTJ","ENTP","ENFJ","ENFP",
+      "ISTJ","ISTP","ISFJ","ISFP",
+      "ESTJ","ESTP","ESFJ","ESFP"
+    ];
 
-function renderTraitQuestions() {
-  const container = document.getElementById("traitContainer");
-  traitQuestions.forEach((q, idx) => {
-    const block = document.createElement("div");
-    block.className = "question-block";
-    block.innerHTML = `
-      <p>${idx+1}. ${q}</p>
-      <div class="score-buttons" id="score-${idx}">
-        ${[1,2,3,4,5].map(n => 
-          `<button onclick="selectScore(${idx}, ${n}, this)">${n}</button>`
-        ).join("")}
-      </div>
-    `;
-    container.appendChild(block);
-  });
-}
+    // --- MBTI 버튼 세팅 ---
+    function renderMBTI(containerId, stateKey) {
+      const box = document.getElementById(containerId);
+      MBTIS.forEach(type => {
+        const el = document.createElement("div");
+        el.className = "mbti-btn";
+        el.innerText = type;
+        el.onclick = () => {
+          document.querySelectorAll(`#${containerId} .mbti-btn`).forEach(btn => btn.classList.remove("active"));
+          el.classList.add("active");
+          window[stateKey] = type;
+        };
+        box.appendChild(el);
+      });
+    }
 
-const traitScores = Array(traitQuestions.length).fill(3);
+    renderMBTI("myMBTI", "my_mbti");
+    renderMBTI("targetMBTI", "target_mbti");
 
-function selectScore(q, score, el) {
-  traitScores[q] = score;
-  [...el.parentNode.children].forEach(btn => btn.classList.remove("selected"));
-  el.classList.add("selected");
-}
+    // --- 성향 질문 ---
+    const traitQuestions = [
+      "나는 낯선 사람에게 쉽게 마음을 여는 편이다.",
+      "나는 상대의 감정 변화에 민감하다.",
+      "나는 갈등이 생겨도 먼저 해결하려고 한다.",
+      "나는 혼자만의 시간이 꼭 필요하다."
+    ];
 
-/* -------------------------------
-   MBTI 버튼 생성
--------------------------------- */
-const mbtiList = [
-  "INTJ","INTP","INFJ","INFP",
-  "ENTJ","ENTP","ENFJ","ENFP",
-  "ISTJ","ISTP","ISFJ","ISFP",
-  "ESTJ","ESTP","ESFJ","ESFP"
-];
+    const traitsBox = document.getElementById("traits");
+    traitQuestions.forEach((q, i) => {
+      const div = document.createElement("div");
+      div.style.marginBottom = "15px";
+      div.innerHTML = `
+        <p>${i+1}. ${q}</p>
+        <div>
+          ${[1,2,3,4,5].map(n =>
+            `<label style="margin-right:8px;">
+              <input type="radio" name="trait${i}" value="${n}" ${n===3?"checked":""}> ${n}
+            </label>`).join("")}
+        </div>
+      `;
+      traitsBox.appendChild(div);
+    });
 
-let userMbti = null;
-let partnerMbti = null;
+    // --------------------
+    // 🔥 AI 분석 함수
+    // --------------------
+    async function analyze() {
+      if (!my_mbti || !target_mbti) {
+        alert("MBTI를 선택해주세요.");
+        return;
+      }
 
-function renderMbtiButtons(gridId, target) {
-  const grid = document.getElementById(gridId);
-  mbtiList.forEach(m => {
-    const btn = document.createElement("div");
-    btn.className = "mbti-btn";
-    btn.innerText = m;
-    btn.onclick = () => {
-      if (target === "user") { userMbti = m; }
-      else { partnerMbti = m; }
+      const chat = document.getElementById("chatText").value.trim();
+      const intent = document.getElementById("myIntent").value.trim();
+      
+      const traits = traitQuestions.map((q, i) => {
+        const v = document.querySelector(`input[name=trait${i}]:checked`).value;
+        return { question: q, score: v };
+      });
 
-      [...grid.children].forEach(b => b.classList.remove("selected"));
-      btn.classList.add("selected");
-    };
-    grid.appendChild(btn);
-  });
-}
+      const payload = {
+        my_mbti,
+        target_mbti,
+        chat,
+        intent,
+        traits
+      };
 
-/* -------------------------------
-   STEP 이동
--------------------------------- */
-function goStep2() {
-  if (!document.getElementById("userName").value.trim()) {
-    alert("이름을 입력해주세요");
-    return;
-  }
-  step1.classList.add("hidden");
-  step2.classList.remove("hidden");
-}
+      const resBox = document.getElementById("resultArea");
+      resBox.innerHTML = "<p>⏳ AI 분석 중...</p>";
 
-function goStep3() {
-  step2.classList.add("hidden");
-  step3.classList.remove("hidden");
-}
+      try {
+        const response = await fetch("/analyze", {
+          method: "POST",
+          headers: {"Content-Type": "application/json"},
+          body: JSON.stringify(payload)
+        });
 
-function goStep4() {
-  if (!userMbti) {
-    alert("MBTI를 선택해주세요");
-    return;
-  }
-  step3.classList.add("hidden");
-  step4.classList.remove("hidden");
-}
+        const data = await response.json();
 
-/* -------------------------------
-   AI 분석 요청
--------------------------------- */
-async function sendToAI() {
-  if (!partnerMbti) {
-    alert("상대 MBTI를 선택해주세요");
-    return;
-  }
+        resBox.innerHTML = `
+          <div class="result-card">
+            <h3>📌 상대의 의도</h3>
+            <p>${data.target_intent}</p>
+          </div>
 
-  const name = document.getElementById("userName").value;
-  const chatText = document.getElementById("chatText").value;
-  const intentionText = document.getElementById("intentionText").value;
+          <div class="result-card">
+            <h3>📌 당신에게 필요한 전략</h3>
+            <p>${data.strategy}</p>
+          </div>
 
-  const traits = traitQuestions.map((q, i) => ({
-    text: q,
-    score: traitScores[i]
-  }));
-
-  const payload = {
-    userName: name,
-    userMbti,
-    traits,
-    partnerMbtiSelected: partnerMbti,
-    situation: "썸단계",
-    conversationType: "personal",
-    chatText,
-    intentionText
-  };
-
-  const response = await fetch("https://love-ai-coach.onrender.com/api/coach", {
-    method: "POST",
-    headers: {"Content-Type":"application/json"},
-    body: JSON.stringify(payload)
-  });
-
-  const data = await response.json();
-
-  if (!data.ok) {
-    alert("AI 분석 실패\n" + data.error);
-    return;
-  }
-
-  const r = data.result;
-
-  // 결과 바인딩
-  document.getElementById("r_intent").innerText = r.partner_intent;
-  document.getElementById("r_flow").innerText = r.conversation_dynamics;
-
-  const riskUl = document.getElementById("r_risk");
-  riskUl.innerHTML = "";
-  r.risk_points.forEach(p => {
-    const li = document.createElement("li");
-    li.innerText = p;
-    riskUl.appendChild(li);
-  });
-
-  document.getElementById("r_summary").innerText = r.advice_summary;
-
-  const phrUl = document.getElementById("r_phrases");
-  phrUl.innerHTML = "";
-  r.recommended_phrases.forEach(p => {
-    const li = document.createElement("li");
-    li.innerText = p;
-    phrUl.appendChild(li);
-  });
-
-  step4.classList.add("hidden");
-  step5.classList.remove("hidden");
-}
-
-/* -------------------------------
-   초기화
--------------------------------- */
-renderTraitQuestions();
-renderMbtiButtons("userMbtiGrid", "user");
-renderMbtiButtons("partnerMbtiGrid", "partner");
-</script>
+          <div class="result-card">
+            <h3>📌 추천 멘트 5가지</h3>
+            <p>${data.recommend.join("<br><br>")}</p>
+          </div>
+        `;
+      } catch (e) {
+        resBox.innerHTML = "<p>❌ AI 분석에 실패했습니다.</p>";
+      }
+    }
+  </script>
 </body>
 </html>
