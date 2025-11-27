@@ -1,12 +1,18 @@
 import express from "express";
 import cors from "cors";
+import dotenv from "dotenv";
 import OpenAI from "openai";
+
+dotenv.config();
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 
-// OpenAI
+// 🔥 public 폴더 정적서빙
+app.use(express.static("public"));
+
+// OpenAI 클라이언트
 const client = new OpenAI({
     apiKey: process.env.OPENAI_API_KEY,
 });
@@ -14,31 +20,29 @@ const client = new OpenAI({
 // 분석 API
 app.post("/analyze", async (req, res) => {
     try {
-        const {
-            userMBTI,
-            partnerMBTI,
-            traits,
-            chatText,
-            myMessage
-        } = req.body;
+        const { my_mbti, other_mbti, tendencies, chat_text, my_message } = req.body;
 
-        if (!chatText) {
-            return res.status(400).json({ error: "chatText is required" });
+        if (!chat_text) {
+            return res.status(400).json({ error: "chat_text is required" });
         }
 
+        console.log("📩 받은 요청:", req.body);
+
         const prompt = `
-[사용자 MBTI]: ${userMBTI}
-[상대 MBTI]: ${partnerMBTI}
-[성향(1~5)]: ${traits}
-[카톡 대화]: ${chatText}
-[내가 하고 싶은 말]: ${myMessage}
+[당신의 MBTI]: ${my_mbti}
+[상대 MBTI]: ${other_mbti}
+[당신의 성향]: ${tendencies}
+[카톡 대화]: ${chat_text}
+[내가 하고 싶은 말]: ${my_message}
 
-아래 3가지를 출력하라:
+아래 항목을 JSON 형태로 출력하라.
 
-1) 상대방의 의도 분석  
-2) 내가 어떻게 대응해야 하는지 전략  
-3) 지금 바로 보내면 좋은 추천 멘트 3개  
-        `;
+{
+  "intent": "...",
+  "strategy": "...",
+  "suggested_messages": ["...", "...", "..."]
+}
+`;
 
         const response = await client.responses.create({
             model: "gpt-4o-mini",
@@ -47,10 +51,16 @@ app.post("/analyze", async (req, res) => {
 
         const output = response.output_text;
 
-        res.json({ result: output });
+        const jsonStart = output.indexOf("{");
+        const jsonEnd = output.lastIndexOf("}");
 
-    } catch (error) {
-        console.error("❌ 분석 오류:", error);
+        const cleanJson = output.slice(jsonStart, jsonEnd + 1);
+        const resultData = JSON.parse(cleanJson);
+
+        res.json(resultData);
+
+    } catch (err) {
+        console.error("❌ 서버 오류:", err);
         res.status(500).json({ error: "AI 분석 실패" });
     }
 });
