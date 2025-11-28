@@ -1,47 +1,37 @@
 import express from "express";
 import cors from "cors";
-import dotenv from "dotenv";
 import OpenAI from "openai";
-import path from "path";
-import { fileURLToPath } from "url";
-
-dotenv.config();
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 
-// ====== 🔥 정적 파일 서비스 설정 (이거 없어서 Cannot GET / 발생) ======
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-app.use(express.static(path.join(__dirname, "public")));
-// ====================================================================
-
-// OpenAI client
+// OpenAI 클라이언트
 const client = new OpenAI({
     apiKey: process.env.OPENAI_API_KEY,
 });
 
-// API endpoint
 app.post("/analyze", async (req, res) => {
     try {
-        const { my_mbti, other_mbti, tendencies, chat_text, my_message } = req.body;
+        const { my_mbti, other_mbti, chat_text, my_message, tendencies } = req.body;
 
-        if (!chat_text) {
-            return res.status(400).json({ error: "chat_text is required" });
+        if (!my_mbti || !other_mbti || !chat_text) {
+            return res.status(400).json({ error: "필수 항목 누락" });
         }
 
         const prompt = `
-[나의 MBTI]: ${my_mbti}
-[상대 MBTI]: ${other_mbti}
-[성향 점수]: ${tendencies}
-[카톡 대화]: ${chat_text}
-[내가 하고 싶은 말]: ${my_message}
+        [AI 관계 분석]
+        내 MBTI: ${my_mbti}
+        상대 MBTI: ${other_mbti}
+        내 성향: ${tendencies.join(", ")}
+        카톡 대화: ${chat_text}
+        내가 하고 싶은 말: ${my_message}
 
-아래 내용을 출력하라:
-1) 상대방 의도
-2) 나에게 필요한 전략
-3) 추천 멘트 3개
+        위 정보를 기반으로
+        1) 상대의 의도
+        2) 당신에게 필요한 전략
+        3) 추천 멘트 3개
+        JSON 형태로 출력해줘.
         `;
 
         const response = await client.responses.create({
@@ -49,22 +39,16 @@ app.post("/analyze", async (req, res) => {
             input: prompt
         });
 
-        const output = response.output_text;
+        const output = response.output[0].content[0].text();
+        const json = JSON.parse(output);
 
-        // 원하는 형태로 분리해서 리턴
-        res.json({
-            intent: output,
-            strategy: output,
-            suggested_messages: ["메시지 1", "메시지 2", "메시지 3"]
-        });
-
-    } catch (error) {
-        console.error("❌ 분석 오류:", error);
-        res.status(500).json({ error: "AI 분석 오류" });
+        res.json(json);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: "AI 분석 실패", detail: err.message });
     }
 });
 
-const PORT = process.env.PORT || 10000;
-app.listen(PORT, () => {
-    console.log(`🚀 Server running on port ${PORT}`);
+app.listen(10000, () => {
+    console.log("Server running on port 10000");
 });
