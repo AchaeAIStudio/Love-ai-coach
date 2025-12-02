@@ -195,12 +195,13 @@
         document.getElementById("errorMessage").innerText = "";
 
         const payload = {
-            userMBTI: myMbti,
-            partnerMBTI: otherMbti,
-            chatText: chat,
-            myMessage: myMsg,
-            traits: [t1, t2, t3, t4]
-        };
+    userMBTI: myMbti,
+    partnerMBTI: otherMbti,
+    chatText: chat,
+    myMessage: myMsg,
+    traits: [t1, t2, t3, t4]
+};
+
 
         try {
             const res = await fetch("/analyze", {
