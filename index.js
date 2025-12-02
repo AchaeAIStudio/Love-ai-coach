@@ -1,34 +1,48 @@
 import express from "express";
 import cors from "cors";
 import OpenAI from "openai";
+import path from "path";
+import { fileURLToPath } from "url";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 
-// 🔥 이것 없어서 / 에서 index.html 안 뜬거임
-app.use(express.static("public"));
+// public 폴더 정적 서빙
+app.use(express.static(path.join(__dirname, "public")));
 
-// OpenAI
+// OpenAI 클라이언트
 const client = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
+// 분석 API
 app.post("/analyze", async (req, res) => {
   try {
-    const { my_mbti, other_mbti, chat_text, my_message, tendencies } = req.body;
+    const {
+      userMBTI,
+      partnerMBTI,
+      chatText,
+      myMessage,
+      traits
+    } = req.body;
 
-    if (!my_mbti || !other_mbti || !chat_text) {
+    if (!userMBTI || !partnerMBTI || !chatText) {
       return res.status(400).json({ error: "필수 항목 누락" });
     }
 
     const prompt = `
 너는 연애 코치야.
-내 MBTI: ${my_mbti}
-상대 MBTI: ${other_mbti}
-카톡: ${chat_text}
-내 말: ${my_message}
-성향: ${tendencies.join(",")}
+내 MBTI: ${userMBTI}
+상대 MBTI: ${partnerMBTI}
+카톡: ${chatText}
+내 말: ${myMessage}
+성향: ${traits.join(",")}
+
+다음 항목을 출력해라:
 
 1) 상대의 의도
 2) 전략
@@ -37,15 +51,13 @@ app.post("/analyze", async (req, res) => {
 
     const response = await client.responses.create({
       model: "gpt-4.1-mini",
-      input: prompt
+      input: prompt,
     });
 
     const text = response.output_text;
 
     res.json({
-      intent: text,
-      strategy: "분석 완료",
-      suggested_messages: ["OK", "좋아", "고마워"].map(t => t)
+      result: text
     });
 
   } catch (err) {
@@ -54,7 +66,10 @@ app.post("/analyze", async (req, res) => {
   }
 });
 
-const PORT = process.env.PORT || 10000;
-app.listen(PORT, () => console.log(`🚀 Server running on ${PORT}`));
+// 루트 경로에서 index.html 반환
+app.get("/", (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "index.html"));
+});
 
-app.use(express.static("public"));
+const PORT = process.env.PORT || 10000;
+app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
